@@ -14,6 +14,7 @@ def iceberg_settings(request):
     if not conf:
         ICEBERG_API_URL_FULL = "https://api.iceberg.technology"
         ICEBERG_CORS = "https://api.iceberg.technology/cors/"
+        iceberg_env = 'prod'
     else:
         iceberg_env = getattr(conf, 'ICEBERG_ENV', 'prod')
         ICEBERG_API_URL_FULL = conf.ICEBERG_API_URL_FULL
