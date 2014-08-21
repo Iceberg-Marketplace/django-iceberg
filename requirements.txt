@@ -1,0 +1,1 @@
+git+https://github.com/Iceberg-Marketplace/Iceberg-API-PYTHON.git#egg=icebergsdk
