@@ -38,15 +38,35 @@ def get_conf_class(user):
     return conf
 
 def sync_user_with_plateform(user):
-    return IcebergAPI(conf = get_conf_class(user)).auth_user(user.username, user.email, first_name = user.first_name, last_name = user.last_name, is_staff = user.is_staff, is_superuser = user.is_superuser)
+    conf = get_conf_class(user)
+
+    if getattr(conf, "ICEBERG_API_PRIVATE_KEY", False):
+        return IcebergAPI(conf = conf).auth_user(user.username, user.email, first_name = user.first_name, last_name = user.last_name, is_staff = user.is_staff, is_superuser = user.is_superuser)
+    else:
+        return IcebergAPI(conf = conf).sso_user(
+            email = user.email,
+            first_name = user.first_name or "Temp",
+            last_name = user.last_name or "Temp"
+        )
 
 
 def init_iceberg(request):
-    if not 'access_token' in request.session:
+    """
+    Main function to get an api_handler for the current user
+    """
+    if 'iceberg_auth_data' not in request.session:
         api_handler = sync_user_with_plateform(request.user)
-        request.session['access_token'] = api_handler.access_token
+        request.session['iceberg_auth_data'] = {
+            "username": api_handler.username,
+            "access_token": api_handler.access_token
+        }
+        if getattr(api_handler, '_sso_response', None):
+            request.session['iceberg_auth_data']['sso_response'] = api_handler._sso_response
+
     else:
-        api_handler = IcebergAPI(username = request.user.username, access_token = request.session['access_token'], conf = get_conf_class(request.user))
+        api_handler = IcebergAPI(username = request.session['iceberg_auth_data']['username'], access_token = request.session['iceberg_auth_data']['access_token'], conf = get_conf_class(request.user))
+        if "sso_response" in request.session['iceberg_auth_data']:
+            api_handler._sso_response = request.session['iceberg_auth_data']['sso_response']
     
     return api_handler
 
