@@ -5,7 +5,7 @@ from icebergsdk.api import IcebergAPI
 from django.conf import settings
 
 from django_iceberg.models import UserIcebergEnvironment
-from django_iceberg.conf import ConfigurationDebug, ConfigurationDebugSandbox, ConfigurationSandbox, ConfigurationStage
+from django_iceberg.conf import ConfigurationDebug, ConfigurationDebugSandbox, ConfigurationSandbox, ConfigurationStage, ConfigurationProd
 
 
 def get_environment(user):
@@ -16,24 +16,30 @@ def get_environment(user):
     except UserIcebergEnvironment.DoesNotExist:
         pass
         
-    return UserIcebergEnvironment.ICEBERG_PROD
+    return None
 
 
 def get_conf_class(user):
     enviro = get_environment(user)
 
     if getattr(settings, 'ICEBERG_USE_LOCAL', False):
+        if not enviro:
+            enviro = getattr(settings, 'ICEBERG_DEFAULT_ENVIRO', None)
+
         if enviro == UserIcebergEnvironment.ICEBERG_SANDBOX:
             conf = ConfigurationDebugSandbox
         else:
             conf = ConfigurationDebug
     else:
+        if not enviro:
+            enviro = getattr(settings, 'ICEBERG_DEFAULT_ENVIRO', None)
+
         if enviro == UserIcebergEnvironment.ICEBERG_SANDBOX:
             conf = ConfigurationSandbox
         elif enviro == UserIcebergEnvironment.ICEBERG_STAGE:
             conf = ConfigurationStage
-        else:
-            conf = None
+        else: # None or UserIcebergEnvironment.ICEBERG_PROD
+            conf = ConfigurationProd
 
     return conf
 

@@ -77,6 +77,26 @@ class ConfigurationStage:
     ICEBERG_API_VERSION = "v1"
     ICEBERG_AUTH_HEADER = "IcebergAccessToken"
     ICEBERG_DEFAULT_LANG = "en"
+
     ICEBERG_ENV = "stage"
+
+
+class ConfigurationProd:
+    ICEBERG_API_URL = "https://api.iceberg.technology"
+    ICEBERG_API_PORT = 443
+
+    ICEBERG_API_PRIVATE_KEY = getattr(settings, 'ICEBERG_API_PRIVATE_KEY', None)
+    ICEBERG_APPLICATION_NAMESPACE = getattr(settings, 'ICEBERG_APPLICATION_NAMESPACE', None)
+    ICEBERG_APPLICATION_SECRET_KEY = getattr(settings, 'ICEBERG_APPLICATION_SECRET_KEY', None)
+
+    ICEBERG_CORS = "https://api.iceberg.technology:%s/cors/" % (ICEBERG_API_PORT)
+
+    ICEBERG_API_URL_FULL = "%s:%s" % (ICEBERG_API_URL, ICEBERG_API_PORT)
+    ICEBERG_API_VERSION = "v1"
+    ICEBERG_AUTH_HEADER = "IcebergAccessToken"
+    ICEBERG_DEFAULT_LANG = "en"
+
+    ICEBERG_ENV = "prod"
+
 
 
