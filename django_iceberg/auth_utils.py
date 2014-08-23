@@ -64,11 +64,11 @@ def sync_user_with_plateform(user):
         return IcebergAPI(conf = conf).sso_user(**data)
 
 
-def init_iceberg(request):
+def init_iceberg(request, force_reload = False):
     """
     Main function to get an api_handler for the current user
     """
-    if 'iceberg_auth_data' not in request.session:
+    if force_reload or ('iceberg_auth_data' not in request.session):
         api_handler = sync_user_with_plateform(request.user)
         request.session['iceberg_auth_data'] = {
             "username": api_handler.username,

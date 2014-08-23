@@ -5,6 +5,7 @@ from django.http import HttpResponseRedirect, HttpResponse
 from django.views.decorators.csrf import csrf_exempt
 
 from django_iceberg.models import UserIcebergEnvironment
+from django_iceberg.auth_utils import init_iceberg
 
 @csrf_exempt
 @login_required
@@ -13,13 +14,14 @@ def switch_env(request, **kwargs):
     if not environment:
         return HttpResponse(status = 400)
 
-
     user_env_conf, created = UserIcebergEnvironment.objects.get_or_create(user = request.user)
     user_env_conf.environment = environment
     try:
         user_env_conf.save()
     except:
         return HttpResponse(status = 500)
+
+    init_iceberg(request, force_reload = True)
 
     success_url = request.GET.get('next', False) or request.POST.get('next', False) or "/"
     return HttpResponseRedirect(success_url)
