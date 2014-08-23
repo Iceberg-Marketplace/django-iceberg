@@ -25,13 +25,11 @@ def iceberg_javascript_sdk(context):
 
 @register.inclusion_tag('django_iceberg/sso.html', takes_context=True)
 def iceberg_sso(context):
-    if not context['user'].is_authenticated():
-        return {}
-
     api_handler = init_iceberg(context['request'])
 
     if hasattr(api_handler, '_sso_response'):
         return {
+            'appNamespace': api_handler.conf.ICEBERG_APPLICATION_NAMESPACE,
             "sso_data": json.dumps(api_handler._sso_response)
         }
     else:

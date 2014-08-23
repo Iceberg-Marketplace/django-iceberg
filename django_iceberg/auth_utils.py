@@ -49,11 +49,19 @@ def sync_user_with_plateform(user):
     if getattr(conf, "ICEBERG_API_PRIVATE_KEY", False):
         return IcebergAPI(conf = conf).auth_user(user.username, user.email, first_name = user.first_name, last_name = user.last_name, is_staff = user.is_staff, is_superuser = user.is_superuser)
     else:
-        return IcebergAPI(conf = conf).sso_user(
-            email = user.email,
-            first_name = user.first_name or "Temp",
-            last_name = user.last_name or "Temp"
-        )
+        if user.is_authenticated():
+            data = {
+                "email": user.email,
+                "first_name": user.first_name or "Temp",
+                "last_name": user.last_name or "Temp"
+            }
+        else:
+            data = {
+                "first_name": "Temp",
+                "last_name": "Temp"
+            }
+
+        return IcebergAPI(conf = conf).sso_user(**data)
 
 
 def init_iceberg(request):
