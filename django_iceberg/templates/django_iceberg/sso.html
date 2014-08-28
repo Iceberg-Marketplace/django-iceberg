@@ -6,10 +6,12 @@ MP.init({
     appNamespace: "{{ appNamespace }}",
     currency: "EUR",
     currency_symbol: "€",
-    shipping_country: "FR",
-    urls: {
+    shipping_country: "FR"
+    {% if API_URL %}
+    ,urls: {
         api: "{{ API_URL }}"
     }
+    {% endif %}
 });
 </script>
 
