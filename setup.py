@@ -23,7 +23,7 @@ setup(
     author='Iceberg',
     author_email='florian@iceberg-marketplace.com',
     url='https://github.com/Modizy/django-iceberg',
-    packages = ["django_iceberg",],
+    packages = ["django_iceberg","django_iceberg.migrations", "django_iceberg.templates", "django_iceberg.templatetags"],
     install_requires = install_requires,
     keywords = ['iceberg', 'modizy', 'marketplace', 'saas', 'django'],
     classifiers = [
