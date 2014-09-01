@@ -35,5 +35,5 @@ setup(
         'Programming Language :: Python',
         'Topic :: Software Development :: Libraries :: Python Modules',
     ],
-    package_data={'django_iceberg': ['templates/*']},
+    package_data={'django_iceberg': ['templates/django_iceberg/*']},
  )
