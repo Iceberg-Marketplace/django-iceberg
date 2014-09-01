@@ -16,7 +16,7 @@ else:
 install_requires = []
 install_requires.append('requests >= 2.3.0')
 
-datafiles = [(root, [os.path.join(root, f) for f in files])
+datafiles = [("./"+root, [os.path.join(root, f) for f in files])
     for root, dirs, files in os.walk("django_iceberg/templates")]
 
 setup(
