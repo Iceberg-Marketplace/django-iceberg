@@ -37,5 +37,5 @@ setup(
         'Programming Language :: Python',
         'Topic :: Software Development :: Libraries :: Python Modules',
     ],
-    datafiles = datafiles
+    data_files = datafiles
  )
