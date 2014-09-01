@@ -16,6 +16,7 @@ else:
 install_requires = []
 install_requires.append('requests >= 2.3.0')
 
+
 setup(
     name='django_iceberg',
     version=VERSION,
@@ -23,7 +24,7 @@ setup(
     author='Iceberg',
     author_email='florian@iceberg-marketplace.com',
     url='https://github.com/Modizy/django-iceberg',
-    packages = ["django_iceberg", "django_iceberg.templatetags"],
+    packages = ["django_iceberg","django_iceberg.migrations", "django_iceberg.templatetags"],
     install_requires = install_requires,
     keywords = ['iceberg', 'modizy', 'marketplace', 'saas', 'django'],
     classifiers = [
@@ -34,4 +35,5 @@ setup(
         'Programming Language :: Python',
         'Topic :: Software Development :: Libraries :: Python Modules',
     ],
+    package_data={'django_iceberg': ['templates/django_iceberg/*']},
  )
