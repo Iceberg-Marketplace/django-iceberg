@@ -26,11 +26,12 @@ class UserIcebergEnvironment(models.Model):
 
 
 class UserIcebergModel(models.Model):
-    ICEBERG_PROD, ICEBERG_SANDBOX, ICEBERG_STAGE = "prod", "sandbox", "stage"
+    ICEBERG_PROD, ICEBERG_SANDBOX, ICEBERG_STAGE, ICEBERG_SANDBOX_STAGE = "prod", "sandbox", "stage", "sandbox_stage"
     ENVIRONMENT_CHOICES = (
-        (ICEBERG_PROD, _('Iceberg Prod')),
-        (ICEBERG_SANDBOX, _('Iceberg Sandbox')),
-        (ICEBERG_STAGE, _('Iceberg Stage')), # PreProd
+        (ICEBERG_PROD, _('Iceberg - Prod')),
+        (ICEBERG_STAGE, _('Iceberg - Prod Stage')), # PreProd
+        (ICEBERG_SANDBOX, _('Iceberg - Sandbox')),
+        (ICEBERG_SANDBOX_STAGE, _('Iceberg - Sandbox Stage')),
     )
 
     user = models.ForeignKey(settings.AUTH_USER_MODEL, blank=True, null=True)
@@ -67,6 +68,8 @@ class UserIcebergModel(models.Model):
                 enviro = getattr(settings, 'ICEBERG_DEFAULT_ENVIRO', None)
 
             if enviro == UserIcebergModel.ICEBERG_SANDBOX:
+                conf = ConfigurationSandbox
+            elif enviro == UserIcebergModel.ICEBERG_SANDBOX_STAGE:
                 conf = ConfigurationSandbox
             elif enviro == UserIcebergModel.ICEBERG_STAGE:
                 conf = ConfigurationStage

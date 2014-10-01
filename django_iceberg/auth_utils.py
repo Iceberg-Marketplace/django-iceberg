@@ -7,7 +7,7 @@ from icebergsdk.api import IcebergAPI
 from django.conf import settings
 
 from django_iceberg.models import UserIcebergModel
-from django_iceberg.conf import ConfigurationDebug, ConfigurationDebugSandbox, ConfigurationSandbox, ConfigurationStage, ConfigurationProd
+from django_iceberg.conf import ConfigurationDebug, ConfigurationDebugSandbox, ConfigurationSandbox, ConfigurationSandboxStage, ConfigurationStage, ConfigurationProd
 
 
 def get_iceberg_model(request):
@@ -46,6 +46,8 @@ def get_conf_class(request):
 
         if enviro == UserIcebergModel.ICEBERG_SANDBOX:
             conf = ConfigurationSandbox
+        elif enviro == UserIcebergModel.ICEBERG_SANDBOX_STAGE:
+            conf = ConfigurationSandboxStage
         elif enviro == UserIcebergModel.ICEBERG_STAGE:
             conf = ConfigurationStage
         else: # None or UserIcebergModel.ICEBERG_PROD

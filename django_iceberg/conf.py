@@ -4,7 +4,7 @@ import os
 
 from django.conf import settings
 
-from icebergsdk.conf import Configuration, ConfigurationStage, ConfigurationDebug, ConfigurationSandbox, ConfigurationDebugSandbox
+from icebergsdk.conf import Configuration, ConfigurationStage, ConfigurationDebug, ConfigurationSandbox, ConfigurationSandboxStage, ConfigurationDebugSandbox
 
 
 class ConfigurationProd(Configuration):
@@ -18,6 +18,11 @@ class ConfigurationSandbox(ConfigurationSandbox):
     ICEBERG_APPLICATION_NAMESPACE = getattr(settings, 'ICEBERG_APPLICATION_NAMESPACE_SANDBOX', os.getenv('ICEBERG_APPLICATION_NAMESPACE_SANDBOX', None))
     ICEBERG_APPLICATION_SECRET_KEY = getattr(settings, 'ICEBERG_APPLICATION_SECRET_KEY_SANDBOX', os.getenv('ICEBERG_APPLICATION_SECRET_KEY_SANDBOX', None))
 
+
+class ConfigurationSandboxStage(ConfigurationSandboxStage):
+    ICEBERG_API_PRIVATE_KEY = getattr(settings, 'ICEBERG_API_PRIVATE_KEY_SANDBOX_STAGE', os.getenv('ICEBERG_API_PRIVATE_KEY_SANDBOX_STAGE', None))
+    ICEBERG_APPLICATION_NAMESPACE = getattr(settings, 'ICEBERG_APPLICATION_NAMESPACE_SANDBOX_STAGE', os.getenv('ICEBERG_APPLICATION_NAMESPACE_SANDBOX_STAGE', None))
+    ICEBERG_APPLICATION_SECRET_KEY = getattr(settings, 'ICEBERG_APPLICATION_SECRET_KEY_SANDBOX_STAGE', os.getenv('ICEBERG_APPLICATION_SECRET_KEY_SANDBOX_STAGE', None))
 
 class ConfigurationStage(ConfigurationStage):
     ICEBERG_API_PRIVATE_KEY = getattr(settings, 'ICEBERG_API_PRIVATE_KEY_STAGE', os.getenv('ICEBERG_API_PRIVATE_KEY_STAGE', None))
