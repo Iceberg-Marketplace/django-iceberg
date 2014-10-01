@@ -9,7 +9,7 @@ def iceberg_settings(request):
     """
     Defines some template variables in context
     """
-    conf = get_conf_class(request.user)
+    conf = get_conf_class(request)
 
     if not conf:
         ICEBERG_API_URL_FULL = "https://api.iceberg.technology"

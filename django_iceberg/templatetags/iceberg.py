@@ -35,6 +35,21 @@ def iceberg_sso(context):
     else:
         return {}
 
+
+@register.inclusion_tag('django_iceberg/sso.html', takes_context=True)
+def iceberg_sso_with_seller(context, seller_id):
+    api_handler = init_iceberg(context['request'])
+
+    if hasattr(api_handler, '_sso_response'):
+        return {
+            "modules": json.dumps(['client', 'seller']),
+            'appNamespace': api_handler.conf.ICEBERG_APPLICATION_NAMESPACE,
+            "sso_data": json.dumps(api_handler._sso_response),
+            "seller": json.dumps({"id": seller_id}),
+        }
+    else:
+        return {}
+
     
     
 

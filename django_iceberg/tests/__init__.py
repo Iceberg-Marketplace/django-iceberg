@@ -1,0 +1,1 @@
+# http://datadesk.latimes.com/posts/2012/06/test-your-django-app-with-travisci/

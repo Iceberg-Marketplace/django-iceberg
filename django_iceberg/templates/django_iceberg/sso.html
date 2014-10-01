@@ -7,6 +7,12 @@ MP.init({
     currency: "EUR",
     currency_symbol: "€",
     shipping_country: "FR"
+    {% if modules %}
+    ,modules: {{ modules|safe }}
+    {% endif %}
+    {% if seller %}
+    ,seller: {{ seller|safe }}
+    {% endif %}
     {% if API_URL %}
     ,urls: {
         api: "{{ API_URL }}"

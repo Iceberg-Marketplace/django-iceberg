@@ -1,102 +1,42 @@
 # -*- coding: utf-8 -*-
 
+import os
+
 from django.conf import settings
 
+from icebergsdk.conf import Configuration, ConfigurationStage, ConfigurationDebug, ConfigurationSandbox, ConfigurationDebugSandbox
 
-"""
-Clean:
-    - inherit from a ParentClass
 
-"""
+class ConfigurationProd(Configuration):
+    ICEBERG_API_PRIVATE_KEY = getattr(settings, 'ICEBERG_API_PRIVATE_KEY', os.getenv('ICEBERG_API_PRIVATE_KEY', None))
+    ICEBERG_APPLICATION_NAMESPACE = getattr(settings, 'ICEBERG_APPLICATION_NAMESPACE', os.getenv('ICEBERG_APPLICATION_NAMESPACE', None))
+    ICEBERG_APPLICATION_SECRET_KEY = getattr(settings, 'ICEBERG_APPLICATION_SECRET_KEY', os.getenv('ICEBERG_APPLICATION_SECRET_KEY', None))
+
+
+class ConfigurationSandbox(ConfigurationSandbox):
+    ICEBERG_API_PRIVATE_KEY = getattr(settings, 'ICEBERG_API_PRIVATE_KEY_SANDBOX', os.getenv('ICEBERG_API_PRIVATE_KEY_SANDBOX', None))
+    ICEBERG_APPLICATION_NAMESPACE = getattr(settings, 'ICEBERG_APPLICATION_NAMESPACE_SANDBOX', os.getenv('ICEBERG_APPLICATION_NAMESPACE_SANDBOX', None))
+    ICEBERG_APPLICATION_SECRET_KEY = getattr(settings, 'ICEBERG_APPLICATION_SECRET_KEY_SANDBOX', os.getenv('ICEBERG_APPLICATION_SECRET_KEY_SANDBOX', None))
+
+
+class ConfigurationStage(ConfigurationStage):
+    ICEBERG_API_PRIVATE_KEY = getattr(settings, 'ICEBERG_API_PRIVATE_KEY_STAGE', os.getenv('ICEBERG_API_PRIVATE_KEY_STAGE', None))
+    ICEBERG_APPLICATION_NAMESPACE = getattr(settings, 'ICEBERG_APPLICATION_NAMESPACE_STAGE', os.getenv('ICEBERG_APPLICATION_NAMESPACE_STAGE', None))
+    ICEBERG_APPLICATION_SECRET_KEY = getattr(settings, 'ICEBERG_APPLICATION_SECRET_KEY', os.getenv('ICEBERG_APPLICATION_SECRET_KEY', None))
+
 
 # Debug/Local
-class ConfigurationDebug:
-    ICEBERG_API_URL = "http://api.local.iceberg.technology"
-    ICEBERG_API_PORT = 8000
-
-    ICEBERG_API_PRIVATE_KEY = getattr(settings, 'ICEBERG_API_PRIVATE_KEY_DEBUG', None)
-    ICEBERG_APPLICATION_NAMESPACE = getattr(settings, 'ICEBERG_APPLICATION_NAMESPACE_DEBUG', None)
-    ICEBERG_APPLICATION_SECRET_KEY = getattr(settings, 'ICEBERG_APPLICATION_SECRET_KEY_DEBUG', None)
-
-    ICEBERG_CORS = "http://api.local.iceberg.technology:8000/cors/"
-
-    ICEBERG_API_URL_FULL = "%s:%s" % (ICEBERG_API_URL, ICEBERG_API_PORT)
-    ICEBERG_API_VERSION = "v1"
-    ICEBERG_AUTH_HEADER = "IcebergAccessToken"
-    ICEBERG_DEFAULT_LANG = "en"
-
-    ICEBERG_SANDBOX_CORS = "http://api.sandbox.local.iceberg.technology:8000/cors/"
+class ConfigurationDebug(ConfigurationDebug):
+    ICEBERG_API_PRIVATE_KEY = getattr(settings, 'ICEBERG_API_PRIVATE_KEY_DEBUG', os.getenv('ICEBERG_API_PRIVATE_KEY_DEBUG', None))
+    ICEBERG_APPLICATION_NAMESPACE = getattr(settings, 'ICEBERG_APPLICATION_NAMESPACE_DEBUG', os.getenv('ICEBERG_APPLICATION_NAMESPACE_DEBUG', None))
+    ICEBERG_APPLICATION_SECRET_KEY = getattr(settings, 'ICEBERG_APPLICATION_SECRET_KEY_DEBUG', os.getenv('ICEBERG_APPLICATION_SECRET_KEY_DEBUG', None))
 
 
-class ConfigurationDebugSandbox:
-    ICEBERG_API_URL = "http://api.sandbox.local.iceberg.technology"
-    ICEBERG_API_PORT = 8000
+class ConfigurationDebugSandbox(ConfigurationDebugSandbox):
+    ICEBERG_API_PRIVATE_KEY = getattr(settings, 'ICEBERG_API_PRIVATE_KEY_DEBUG_SANDBOX', os.getenv('ICEBERG_API_PRIVATE_KEY_DEBUG_SANDBOX', None))
+    ICEBERG_APPLICATION_NAMESPACE = getattr(settings, 'ICEBERG_APPLICATION_NAMESPACE_DEBUG_SANDBOX', os.getenv('ICEBERG_APPLICATION_NAMESPACE_DEBUG_SANDBOX', None))
+    ICEBERG_APPLICATION_SECRET_KEY = getattr(settings, 'ICEBERG_APPLICATION_SECRET_KEY_DEBUG_SANDBOX', os.getenv('ICEBERG_APPLICATION_SECRET_KEY_DEBUG_SANDBOX', None))
 
-    ICEBERG_API_PRIVATE_KEY = getattr(settings, 'ICEBERG_API_PRIVATE_KEY_DEBUG_SANDBOX', None)
-    ICEBERG_APPLICATION_NAMESPACE = getattr(settings, 'ICEBERG_APPLICATION_NAMESPACE_DEBUG_SANDBOX', None)
-    ICEBERG_APPLICATION_SECRET_KEY = getattr(settings, 'ICEBERG_APPLICATION_SECRET_KEY_DEBUG_SANDBOX', None)
-
-    ICEBERG_CORS = "http://api.sandbox.local.iceberg.technology:8000/cors/"
-
-    ICEBERG_API_URL_FULL = "%s:%s" % (ICEBERG_API_URL, ICEBERG_API_PORT)
-    ICEBERG_API_VERSION = "v1"
-    ICEBERG_AUTH_HEADER = "IcebergAccessToken"
-    ICEBERG_DEFAULT_LANG = "en"
-    ICEBERG_ENV = "sandbox"
-
-
-# NOT LOCAL
-class ConfigurationSandbox:
-    ICEBERG_API_URL = "http://api.sandbox.iceberg.technology"
-    ICEBERG_API_PORT = 80
-
-    ICEBERG_API_PRIVATE_KEY = getattr(settings, 'ICEBERG_API_PRIVATE_KEY_SANDBOX', None)
-    ICEBERG_APPLICATION_NAMESPACE = getattr(settings, 'ICEBERG_APPLICATION_NAMESPACE_SANDBOX', None)
-    ICEBERG_APPLICATION_SECRET_KEY = getattr(settings, 'ICEBERG_APPLICATION_SECRET_KEY_SANDBOX', None)
-
-    ICEBERG_CORS = "http://api.sandbox.iceberg.technology/cors/"
-
-    ICEBERG_API_URL_FULL = "%s:%s" % (ICEBERG_API_URL, ICEBERG_API_PORT)
-    ICEBERG_API_VERSION = "v1"
-    ICEBERG_AUTH_HEADER = "IcebergAccessToken"
-    ICEBERG_DEFAULT_LANG = "en"
-    ICEBERG_ENV = "sandbox"
-
-
-class ConfigurationStage:
-    ICEBERG_API_URL = "http://api.stage.iceberg.technology"
-    ICEBERG_API_PORT = 80
-
-    ICEBERG_API_PRIVATE_KEY = getattr(settings, 'ICEBERG_API_PRIVATE_KEY_STAGE', None)
-    ICEBERG_APPLICATION_NAMESPACE = getattr(settings, 'ICEBERG_APPLICATION_NAMESPACE_STAGE', None)
-    ICEBERG_APPLICATION_SECRET_KEY = getattr(settings, 'ICEBERG_APPLICATION_SECRET_KEY', None)
-
-    ICEBERG_CORS = "http://api.stage.iceberg.technology/cors/"
-
-    ICEBERG_API_URL_FULL = "%s:%s" % (ICEBERG_API_URL, ICEBERG_API_PORT)
-    ICEBERG_API_VERSION = "v1"
-    ICEBERG_AUTH_HEADER = "IcebergAccessToken"
-    ICEBERG_DEFAULT_LANG = "en"
-
-    ICEBERG_ENV = "stage"
-
-
-class ConfigurationProd:
-    ICEBERG_API_URL = "https://api.iceberg.technology"
-    ICEBERG_API_PORT = 443
-
-    ICEBERG_API_PRIVATE_KEY = getattr(settings, 'ICEBERG_API_PRIVATE_KEY', None)
-    ICEBERG_APPLICATION_NAMESPACE = getattr(settings, 'ICEBERG_APPLICATION_NAMESPACE', None)
-    ICEBERG_APPLICATION_SECRET_KEY = getattr(settings, 'ICEBERG_APPLICATION_SECRET_KEY', None)
-
-    ICEBERG_CORS = "https://api.iceberg.technology:%s/cors/" % (ICEBERG_API_PORT)
-
-    ICEBERG_API_URL_FULL = "%s:%s" % (ICEBERG_API_URL, ICEBERG_API_PORT)
-    ICEBERG_API_VERSION = "v1"
-    ICEBERG_AUTH_HEADER = "IcebergAccessToken"
-    ICEBERG_DEFAULT_LANG = "en"
-
-    ICEBERG_ENV = "prod"
 
 
 
