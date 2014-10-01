@@ -8,9 +8,6 @@ from django.db import models
 class Migration(SchemaMigration):
 
     def forwards(self, orm):
-        # Deleting model 'UserIcebergEnvironment'
-        db.delete_table(u'django_iceberg_usericebergenvironment')
-
         # Adding model 'UserIcebergModel'
         db.create_table(u'django_iceberg_usericebergmodel', (
             (u'id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
@@ -29,15 +26,6 @@ class Migration(SchemaMigration):
 
 
     def backwards(self, orm):
-        # Adding model 'UserIcebergEnvironment'
-        db.create_table(u'django_iceberg_usericebergenvironment', (
-            ('environment', self.gf('django.db.models.fields.PositiveSmallIntegerField')(default=1)),
-            ('last_updated', self.gf('django.db.models.fields.DateTimeField')(auto_now=True, blank=True)),
-            (u'id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
-            ('user', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['auth.User'], null=True, blank=True)),
-        ))
-        db.send_create_signal(u'django_iceberg', ['UserIcebergEnvironment'])
-
         # Deleting model 'UserIcebergModel'
         db.delete_table(u'django_iceberg_usericebergmodel')
 
@@ -78,6 +66,13 @@ class Migration(SchemaMigration):
             u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
             'model': ('django.db.models.fields.CharField', [], {'max_length': '100'}),
             'name': ('django.db.models.fields.CharField', [], {'max_length': '100'})
+        },
+        u'django_iceberg.usericebergenvironment': {
+            'Meta': {'object_name': 'UserIcebergEnvironment'},
+            'environment': ('django.db.models.fields.PositiveSmallIntegerField', [], {'default': '1'}),
+            u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
+            'last_updated': ('django.db.models.fields.DateTimeField', [], {'auto_now': 'True', 'blank': 'True'}),
+            'user': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['auth.User']", 'null': 'True', 'blank': 'True'})
         },
         u'django_iceberg.usericebergmodel': {
             'Meta': {'object_name': 'UserIcebergModel'},
