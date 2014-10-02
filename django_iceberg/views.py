@@ -31,6 +31,7 @@ def class_view_decorator(function_decorator):
 @login_required
 def switch_env(request, **kwargs):
     environment = request.POST.get('environment', None)
+
     if not environment:
         return HttpResponse(status = 400)
 
