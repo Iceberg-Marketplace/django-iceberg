@@ -8,7 +8,7 @@ from django.db import models
 from django.conf import settings
 from django.utils.translation import ugettext_lazy as _
 
-from django_iceberg.conf import ConfigurationDebug, ConfigurationDebugSandbox, ConfigurationSandbox, ConfigurationStage, ConfigurationProd
+from django_iceberg.conf import ConfigurationDebug, ConfigurationDebugSandbox, ConfigurationSandbox, ConfigurationSandboxStage, ConfigurationStage, ConfigurationProd
 
 
 class UserIcebergEnvironment(models.Model):
@@ -70,7 +70,7 @@ class UserIcebergModel(models.Model):
             if enviro == UserIcebergModel.ICEBERG_SANDBOX:
                 conf = ConfigurationSandbox
             elif enviro == UserIcebergModel.ICEBERG_SANDBOX_STAGE:
-                conf = ConfigurationSandbox
+                conf = ConfigurationSandboxStage
             elif enviro == UserIcebergModel.ICEBERG_STAGE:
                 conf = ConfigurationStage
             else: # None or UserIcebergModel.ICEBERG_PROD
