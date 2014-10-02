@@ -65,12 +65,13 @@ def get_api_handler_for_user(request, force_reload = False):
 
     # Check if we have a saved one
     if not force_reload and ('iceberg_auth_response' in request.session):
-        api_handler = IcebergAPI(conf = conf)
-        api_handler._auth_response = request.session['iceberg_auth_response']
-        api_handler.username = request.session['iceberg_auth_response']['username']
-        api_handler.access_token = request.session['iceberg_auth_response']['access_token']
+        if ('username' in request.session['iceberg_auth_response']) and ('access_token' in request.session['iceberg_auth_response']):
+            api_handler = IcebergAPI(conf = conf)
+            api_handler._auth_response = request.session['iceberg_auth_response']
+            api_handler.username = request.session['iceberg_auth_response']['username']
+            api_handler.access_token = request.session['iceberg_auth_response']['access_token']
 
-        return api_handler
+            return api_handler
 
     if getattr(conf, "ICEBERG_API_PRIVATE_KEY", False):  # ICEBERG_API_PRIVATE_KEY is use for Iceberg internal calls
         api_handler = IcebergAPI(conf = conf).auth_user(user.username, user.email, first_name = user.first_name, last_name = user.last_name, is_staff = user.is_staff, is_superuser = user.is_superuser)
