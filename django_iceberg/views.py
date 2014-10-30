@@ -11,7 +11,12 @@ from django_iceberg.auth_utils import init_iceberg
 from django_iceberg.forms import UserShoppingPreferencesForm
 from django.views.generic.edit import FormView
 
-from .models import UserIcebergModel
+
+def switch_user_env(request, environment):
+    user_env_conf, created = UserIcebergModel.objects.get_or_create(user = request.user)
+    user_env_conf.switch_env(environment)
+    init_iceberg(request, force_reload = True)
+
 
 def class_view_decorator(function_decorator):
     """Convert a function based decorator into a class based decorator usable
@@ -35,14 +40,10 @@ def switch_env(request, **kwargs):
     if not environment:
         return HttpResponse(status = 400)
 
-    user_env_conf, created = UserIcebergModel.objects.get_or_create(user = request.user)
-
     try:
-        user_env_conf.switch_env(environment)
+        switch_user_env(request, environment)
     except:
         return HttpResponse(status = 500)
-
-    init_iceberg(request, force_reload = True)
 
     success_url = request.GET.get('next', False) or request.POST.get('next', False) or "/"
     return HttpResponseRedirect(success_url)
