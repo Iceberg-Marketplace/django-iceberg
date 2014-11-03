@@ -93,7 +93,7 @@ def get_api_handler_for_user(request, force_reload = False):
         user_iceberg_model.iceberg_username =  api_handler.username
         user_iceberg_model.access_token = api_handler.access_token
 
-        if api_handler.me().language:
+        if hasattr(api_handler.me(), 'language') and api_handler.me().language:
             user_iceberg_model.language = api_handler.me().language
 
         if api_handler.me().shopping_preference.country:
@@ -125,8 +125,8 @@ def get_api_handler_for_anonymous(request, force_reload = False):
     else:
         api_handler = IcebergAPI(conf = conf)
         api_handler._auth_response = request.session['iceberg_auth_response']
-        api_handler._auth_response.username = request.session['iceberg_auth_response']['username']
-        api_handler._auth_response.access_token = request.session['iceberg_auth_response']['access_token']
+        api_handler.username = request.session['iceberg_auth_response']['username']
+        api_handler.access_token = request.session['iceberg_auth_response']['access_token']
 
     return api_handler
 
