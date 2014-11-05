@@ -21,7 +21,7 @@ class UserIcebergModel(models.Model):
     )
 
     user = models.ForeignKey(settings.AUTH_USER_MODEL, blank=True, null=True)
-    environment = models.CharField(choices=ENVIRONMENT_CHOICES, default=ICEBERG_SANDBOX, max_length = 20)
+    environment = models.CharField(choices=ENVIRONMENT_CHOICES, default=ICEBERG_PROD, max_length = 20)
     last_updated = models.DateTimeField(auto_now = True) # 
 
     iceberg_username = models.CharField(max_length = 255, null = True, blank = True)
