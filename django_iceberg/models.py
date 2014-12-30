@@ -11,6 +11,7 @@ from django.utils.translation import ugettext_lazy as _
 from django_iceberg.conf import ConfigurationDebug, ConfigurationDebugSandbox, ConfigurationSandbox, ConfigurationSandboxStage, ConfigurationStage, ConfigurationProd
 
 
+
 class UserIcebergModel(models.Model):
     ICEBERG_PROD, ICEBERG_SANDBOX, ICEBERG_STAGE, ICEBERG_SANDBOX_STAGE = "prod", "sandbox", "stage", "sandbox_stage"
     ENVIRONMENT_CHOICES = (
