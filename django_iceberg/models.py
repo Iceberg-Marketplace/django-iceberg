@@ -10,7 +10,7 @@ from django.utils.translation import ugettext_lazy as _
 
 from django_iceberg.conf import ConfigurationDebug, ConfigurationDebugSandbox, ConfigurationSandbox, ConfigurationSandboxStage, ConfigurationStage, ConfigurationProd
 
-
+DEFAULT_ICEBERG_ENV = getattr(settings, 'ICEBERG_DEFAULT_ENVIRO', "prod")
 
 class UserIcebergModel(models.Model):
     ICEBERG_PROD, ICEBERG_SANDBOX, ICEBERG_STAGE, ICEBERG_SANDBOX_STAGE = "prod", "sandbox", "stage", "sandbox_stage"
@@ -22,7 +22,7 @@ class UserIcebergModel(models.Model):
     )
 
     user = models.ForeignKey(settings.AUTH_USER_MODEL, blank=True, null=True)
-    environment = models.CharField(choices=ENVIRONMENT_CHOICES, default=ICEBERG_PROD, max_length = 20)
+    environment = models.CharField(choices=ENVIRONMENT_CHOICES, default=DEFAULT_ICEBERG_ENV, max_length = 20)
     last_updated = models.DateTimeField(auto_now = True) # 
 
     iceberg_username = models.CharField(max_length = 255, null = True, blank = True)

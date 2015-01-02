@@ -11,6 +11,8 @@ from django_iceberg.auth_utils import init_iceberg
 from django_iceberg.forms import UserShoppingPreferencesForm
 from django.views.generic.edit import FormView
 
+import logging
+logger = logging.getLogger(__name__)
 
 def switch_user_env(request, environment):
     user_env_conf, created = UserIcebergModel.objects.get_or_create(user = request.user)
@@ -35,14 +37,15 @@ def class_view_decorator(function_decorator):
 @csrf_exempt
 @login_required
 def switch_env(request, **kwargs):
-    environment = request.POST.get('environment', None)
+    environment = request.POST.get('environment', request.GET.get('environment', None))
 
     if not environment:
         return HttpResponse(status = 400)
 
     try:
         switch_user_env(request, environment)
-    except:
+    except Exception as err:
+        logger.error(str(err))
         return HttpResponse(status = 500)
 
     success_url = request.GET.get('next', False) or request.POST.get('next', False) or "/"
