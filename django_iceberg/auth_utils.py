@@ -10,6 +10,11 @@ from django_iceberg.models import UserIcebergModel
 from django_iceberg.conf import ConfigurationDebug, ConfigurationDebugSandbox, ConfigurationSandbox, ConfigurationSandboxStage, ConfigurationStage, ConfigurationProd
 
 
+"""
+To Do: Add birth_date
+"""
+
+
 def get_iceberg_model(request):
     if not hasattr(request, '_iceberg_model'):
         user_iceberg_model, created = UserIcebergModel.objects.get_or_create(user = request.user)
@@ -59,7 +64,7 @@ def get_conf_class(request):
 ######
 ### IcebergAPI initialisation
 ######
-def get_api_handler_for_user(request, force_reload = False):
+def get_api_handler_for_user(request, force_reload = False, data = None):
     user = request.user
     conf = get_conf_class(request)
 
@@ -77,11 +82,11 @@ def get_api_handler_for_user(request, force_reload = False):
         api_handler = IcebergAPI(conf = conf).auth_user(user.username, user.email, first_name = user.first_name, last_name = user.last_name, is_staff = user.is_staff, is_superuser = user.is_superuser)
     else:
         # Need to call the Iceberg API
-        data = {
+        data.update({
             "email": user.email,
             "first_name": user.first_name or "Temp",
             "last_name": user.last_name or "Temp"
-        }
+        })
 
         api_handler = IcebergAPI(conf = conf).sso_user(**data)
 
@@ -110,7 +115,7 @@ def get_api_handler_for_user(request, force_reload = False):
     return api_handler
 
 
-def get_api_handler_for_anonymous(request, force_reload = False):
+def get_api_handler_for_anonymous(request, force_reload = False, data = None):
     """
     Return the api_handler for an anonymous user
     """
@@ -134,14 +139,14 @@ def get_api_handler_for_anonymous(request, force_reload = False):
 ######
 ### django_iceberg main fonction
 ######
-def init_iceberg(request, force_reload = False):
+def init_iceberg(request, force_reload = False, data = None):
     """
     Main function to get an api_handler for the current user
     """
     if not request.user.is_authenticated():
-        api_handler = get_api_handler_for_anonymous(request, force_reload = force_reload)
+        api_handler = get_api_handler_for_anonymous(request, force_reload = force_reload, data = data)
     else:
-        api_handler = get_api_handler_for_user(request, force_reload = force_reload)
+        api_handler = get_api_handler_for_user(request, force_reload = force_reload, data = data)
 
     return api_handler
 
