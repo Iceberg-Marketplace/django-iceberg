@@ -82,6 +82,9 @@ def get_api_handler_for_user(request, force_reload = False, data = None):
         api_handler = IcebergAPI(conf = conf).auth_user(user.username, user.email, first_name = user.first_name, last_name = user.last_name, is_staff = user.is_staff, is_superuser = user.is_superuser)
     else:
         # Need to call the Iceberg API
+        if not data:
+            data = {}
+
         data.update({
             "email": user.email,
             "first_name": user.first_name or "Temp",
