@@ -64,14 +64,14 @@ def get_conf_class(request):
 ######
 ### IcebergAPI initialisation
 ######
-def get_api_handler_for_user(request, force_reload = False, data = None):
+def get_api_handler_for_user(request, force_reload = False, data = None, lang = None):
     user = request.user
     conf = get_conf_class(request)
 
     # Check if we have a saved one
     if not force_reload and ('iceberg_auth_response' in request.session):
         if ('username' in request.session['iceberg_auth_response']) and ('access_token' in request.session['iceberg_auth_response']):
-            api_handler = IcebergAPI(conf = conf)
+            api_handler = IcebergAPI(conf = conf, lang = lang)
             api_handler._auth_response = request.session['iceberg_auth_response']
             api_handler.username = request.session['iceberg_auth_response']['username']
             api_handler.access_token = request.session['iceberg_auth_response']['access_token']
@@ -79,7 +79,7 @@ def get_api_handler_for_user(request, force_reload = False, data = None):
             return api_handler
 
     if getattr(conf, "ICEBERG_API_PRIVATE_KEY", False):  # ICEBERG_API_PRIVATE_KEY is use for Iceberg internal calls
-        api_handler = IcebergAPI(conf = conf).auth_user(user.username, user.email, first_name = user.first_name, last_name = user.last_name, is_staff = user.is_staff, is_superuser = user.is_superuser)
+        api_handler = IcebergAPI(conf = conf, lang = lang).auth_user(user.username, user.email, first_name = user.first_name, last_name = user.last_name, is_staff = user.is_staff, is_superuser = user.is_superuser)
     else:
         # Need to call the Iceberg API
         if not data:
@@ -91,7 +91,7 @@ def get_api_handler_for_user(request, force_reload = False, data = None):
             "last_name": user.last_name or "Temp"
         })
 
-        api_handler = IcebergAPI(conf = conf).sso_user(**data)
+        api_handler = IcebergAPI(conf = conf, lang = lang).sso_user(**data)
 
         user_iceberg_model = get_iceberg_model(request)
 
@@ -118,20 +118,20 @@ def get_api_handler_for_user(request, force_reload = False, data = None):
     return api_handler
 
 
-def get_api_handler_for_anonymous(request, force_reload = False, data = None):
+def get_api_handler_for_anonymous(request, force_reload = False, data = None, lang = None):
     """
     Return the api_handler for an anonymous user
     """
     conf = get_conf_class(request)
 
     if force_reload or ('iceberg_auth_response' not in request.session):
-        api_handler = IcebergAPI(conf = conf).sso_user()
+        api_handler = IcebergAPI(conf = conf, lang = lang).sso_user()
 
         # Keep it in session
         request.session['iceberg_auth_response'] = api_handler._auth_response
 
     else:
-        api_handler = IcebergAPI(conf = conf)
+        api_handler = IcebergAPI(conf = conf, lang = lang)
         api_handler._auth_response = request.session['iceberg_auth_response']
         api_handler.username = request.session['iceberg_auth_response']['username']
         api_handler.access_token = request.session['iceberg_auth_response']['access_token']
@@ -142,14 +142,14 @@ def get_api_handler_for_anonymous(request, force_reload = False, data = None):
 ######
 ### django_iceberg main fonction
 ######
-def init_iceberg(request, force_reload = False, data = None):
+def init_iceberg(request, force_reload = False, data = None, lang = "en"):
     """
     Main function to get an api_handler for the current user
     """
     if not request.user.is_authenticated():
-        api_handler = get_api_handler_for_anonymous(request, force_reload = force_reload, data = data)
+        api_handler = get_api_handler_for_anonymous(request, force_reload = force_reload, data = data, lang = lang)
     else:
-        api_handler = get_api_handler_for_user(request, force_reload = force_reload, data = data)
+        api_handler = get_api_handler_for_user(request, force_reload = force_reload, data = data, lang = lang)
 
     return api_handler
 
