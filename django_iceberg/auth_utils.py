@@ -64,9 +64,12 @@ def get_conf_class(request):
 ######
 ### IcebergAPI initialisation
 ######
-def get_api_handler_for_user(request, force_reload = False, data = None, lang = None):
+def get_api_handler_for_user(request, force_reload = False, data = None, lang = None, conf = None):
     user = request.user
-    conf = get_conf_class(request)
+
+    if conf is None:
+        ## default conf
+        conf = get_conf_class(request)
 
     # Check if we have a saved one
     if not force_reload and ('iceberg_auth_response' in request.session):
@@ -118,11 +121,13 @@ def get_api_handler_for_user(request, force_reload = False, data = None, lang = 
     return api_handler
 
 
-def get_api_handler_for_anonymous(request, force_reload = False, data = None, lang = None):
+def get_api_handler_for_anonymous(request, force_reload = False, data = None, lang = None, conf=None):
     """
     Return the api_handler for an anonymous user
     """
-    conf = get_conf_class(request)
+    if conf is None:
+        ## default conf
+        conf = get_conf_class(request)
 
     if force_reload or ('iceberg_auth_response' not in request.session):
         api_handler = IcebergAPI(conf = conf, lang = lang).sso_user()
@@ -142,14 +147,14 @@ def get_api_handler_for_anonymous(request, force_reload = False, data = None, la
 ######
 ### django_iceberg main fonction
 ######
-def init_iceberg(request, force_reload = False, data = None, lang = "en"):
+def init_iceberg(request, force_reload = False, data = None, lang = "en", conf=None):
     """
     Main function to get an api_handler for the current user
     """
     if not request.user.is_authenticated():
-        api_handler = get_api_handler_for_anonymous(request, force_reload = force_reload, data = data, lang = lang)
+        api_handler = get_api_handler_for_anonymous(request, force_reload = force_reload, data = data, lang = lang, conf=conf)
     else:
-        api_handler = get_api_handler_for_user(request, force_reload = force_reload, data = data, lang = lang)
+        api_handler = get_api_handler_for_user(request, force_reload = force_reload, data = data, lang = lang, conf=conf)
 
     return api_handler
 
