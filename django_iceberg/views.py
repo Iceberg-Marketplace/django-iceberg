@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+import json
 
 from django.contrib.auth.decorators import login_required
 from django.http import HttpResponseRedirect, HttpResponse
@@ -72,5 +73,29 @@ class UpdateShoppingPreference(FormView):
 
     def get_success_url(self):
         return reverse('django_iceberg_update_shopping_prefs')
+
+
+
+def webhook_endpoint(request, **kwargs):
+    try:
+        from django_iceberg import signals
+        try:
+            webhook_data = json.loads(request.body)
+            event = webhook_data["event"]
+        except (KeyError, ValueError) as err:
+            logger.exception("in webhook_endpoint: bad request: ")
+            return HttpResponse(status = 400, content=str(err))
+        
+        signal = getattr(signals, event, None)
+        if signal is None:
+            logger.error("Received unknown webhook event %s" % event)
+        else:
+            signal.send(webhook_data=webhook_data)
+        return HttpResponse(status = 202)
+    except:
+        logger.exception("in webhook_endpoint: ")
+        return HttpResponse(status = 500)
+
+
 
 

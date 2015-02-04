@@ -1,34 +1,31 @@
-# -*- coding: utf-8 -*-
-
 import json
-
-from icebergsdk.api import IcebergAPI
-
 from django.db import models
 from django.conf import settings
 from django.utils.translation import ugettext_lazy as _
 
-from django_iceberg.conf import ConfigurationDebug, ConfigurationDebugSandbox, ConfigurationSandbox, ConfigurationSandboxStage, ConfigurationStage, ConfigurationProd
 
-DEFAULT_ICEBERG_ENV = getattr(settings, 'ICEBERG_DEFAULT_ENVIRO', "prod")
+from .base_models import IcebergBaseModel
 
-class UserIcebergModel(models.Model):
-    ICEBERG_PROD, ICEBERG_SANDBOX, ICEBERG_STAGE, ICEBERG_SANDBOX_STAGE = "prod", "sandbox", "stage", "sandbox_stage"
-    ENVIRONMENT_CHOICES = (
-        (ICEBERG_PROD, _('Iceberg - Prod')),
-        (ICEBERG_STAGE, _('Iceberg - Prod Stage')), # PreProd
-        (ICEBERG_SANDBOX, _('Iceberg - Sandbox')),
-        (ICEBERG_SANDBOX_STAGE, _('Iceberg - Sandbox Stage')),
-    )
+from icebergsdk.api import IcebergAPI
+from django_iceberg.conf import ConfigurationDebug, ConfigurationDebugSandbox,\
+                                ConfigurationSandbox, ConfigurationSandboxStage,\
+                                ConfigurationStage, ConfigurationProd
+
+class UserIcebergModel(IcebergBaseModel):
 
     user = models.ForeignKey(settings.AUTH_USER_MODEL, blank=True, null=True)
-    environment = models.CharField(choices=ENVIRONMENT_CHOICES, default=DEFAULT_ICEBERG_ENV, max_length = 20)
-    last_updated = models.DateTimeField(auto_now = True) # 
 
     iceberg_username = models.CharField(max_length = 255, null = True, blank = True)
+
     access_token = models.CharField(max_length = 255, null = True, blank = True)
-    sso_data = models.TextField(_('Single Sign On Data'), null = True, blank = True, help_text = _('Will keep SSO data for fast access'))
-    application_namespace = models.CharField(_('Application Namespace'), max_length = 255, null = True, blank = True, help_text = _('Allow Connection with several Applications'))
+
+    sso_data = models.TextField(_('Single Sign On Data'),
+        null = True, blank = True, help_text = _('Will keep SSO data for fast access'))
+
+    application_namespace = models.CharField(_('Application Namespace'),
+        max_length = 255, null = True, blank = True,
+        help_text = _('Allow Connection with several Applications'))
+
     language = models.CharField(default="en", max_length = 10) # ISO
 
     # Shopping Preference
@@ -81,15 +78,3 @@ class UserIcebergModel(models.Model):
         shopping_preference.country = api_handler.Country.search({"code": self.shipping_country})[0][0]
         shopping_preference.currency = self.currency
         shopping_preference.save()
-
-
-
-
-# class IcebergMerchant(models.Model):
-#     iceberg_id =
-#     name = 
-#     last_updated = 
-#     number_products = 
-    
-
-
