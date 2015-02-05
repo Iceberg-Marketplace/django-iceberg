@@ -10,7 +10,7 @@ class IcebergMiddleware(object):
     """ 
     def process_request(self, request):
         iceberg_enviro = request.GET.get("iceberg_enviro", None)
-        if iceberg_enviro:
+        if iceberg_enviro and request.user and request.user.is_authenticated():
             iceberg_enviro = iceberg_enviro.lower()
 
             switch_user_env(request, iceberg_enviro)

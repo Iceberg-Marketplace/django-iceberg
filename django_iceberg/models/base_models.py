@@ -24,7 +24,7 @@ class IcebergBaseModel(models.Model):
     class Meta:
         abstract = True
 
-    def sync_from_iceberg(self, api_handler):
+    def iceberg_sync(self, api_handler):
         """
         Sync the local object from Iceberg version
         """

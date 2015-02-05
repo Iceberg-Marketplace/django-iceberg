@@ -2,8 +2,9 @@
 from django.db import models
 from django.conf import settings
 from django.utils.translation import ugettext_lazy as _
-
 from .base_models import IcebergBaseModel
+
+from icebergsdk.api import IcebergAPI
 
 WEBHOOK_MAX_TRIGGER_AGGREGATION = getattr(settings, 'WEBHOOK_MAX_TRIGGER_AGGREGATION', 200)
 WEBHOOK_DEFAULT_AGGREGATION_DELAY = getattr(settings, 'WEBHOOK_DEFAULT_AGGREGATION_DELAY', 5*60)
@@ -71,17 +72,18 @@ class IcebergWebhook(IcebergBaseModel):
         max_length=10, blank=True, null=True
     )
 
-    def save(self, *args, **kwargs):
+    def save(self, api_handler=None, iceberg_sync=True, *args, **kwargs):
         """
-        if an api_handler is given as kwarg, update or create the webhook on iceberg
+        if an api_handler is given, update or create the webhook on iceberg
         """
-
-        api_handler = kwargs.pop("api_handler",None)
-
+        self.full_clean()
         super(IcebergWebhook, self).save(*args, **kwargs)
         
+        if not iceberg_sync:
+            return
+
         if api_handler:
-            self.create_on_iceberg(api_handler)
+            self.create_or_update_on_iceberg(api_handler)
         else:
             if self.iceberg_id is None:
                 logger.warn("No api_handler given as save() params, not created on Iceberg.\
@@ -118,6 +120,8 @@ class IcebergWebhook(IcebergBaseModel):
             raise Exception("IcebergWebhook instance has no iceberg_id, can't sync")
 
         iceberg_webhook = api_handler.Webhook.find(self.iceberg_id)
+        self.application_id = iceberg_webhook.application.id if iceberg_webhook.application else None
+        self.merchant_id = iceberg_webhook.merchant.id if iceberg_webhook.merchant else None
         self.url = iceberg_webhook.url
         self.event = iceberg_webhook.event
         self.status = iceberg_webhook.status
@@ -128,4 +132,6 @@ class IcebergWebhook(IcebergBaseModel):
         self.max_trigger_aggregation = iceberg_webhook.max_trigger_aggregation
         self.aggregation_delay = iceberg_webhook.aggregation_delay
         self.active_merchant_only = iceberg_webhook.active_merchant_only
-        self.save()
+        self.created_at = iceberg_webhook.created_at
+        self.updated_at = iceberg_webhook.updated_at
+        super(IcebergWebhook, self).save() ## just calling the original save()
