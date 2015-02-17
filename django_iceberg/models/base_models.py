@@ -22,6 +22,7 @@ class IcebergBaseModel(models.Model):
     API_RESOURCE_NAME = None
 
     class Meta:
+        app_label = "django_iceberg"
         abstract = True
 
     def iceberg_sync(self, api_handler):
