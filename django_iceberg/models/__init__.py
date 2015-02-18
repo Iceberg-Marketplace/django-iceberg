@@ -1,5 +1,8 @@
+# -*- coding: utf-8 -*-
+
 from .user_models import *
 from .webhook_models import *
+from .conf_models import *
 
 
 
