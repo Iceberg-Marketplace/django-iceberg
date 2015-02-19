@@ -31,11 +31,12 @@ def get_environment(request):
     return None
 
 
-def get_conf_class(request):
+def get_conf_class(request, enviro = None):
     """
     Return the Configuration class for the given enviro
     """
-    enviro = get_environment(request)
+    if not enviro:
+        enviro = get_environment(request)
 
     if getattr(settings, 'ICEBERG_USE_LOCAL', False):
         if not enviro:
