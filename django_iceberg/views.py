@@ -90,6 +90,7 @@ def webhook_endpoint(request, **kwargs):
         if signal is None:
             logger.error("Received unknown webhook event %s" % event)
         else:
+            logger.info("Received webhook event %s, forwarding it as signal %s" % (event, signal_name))
             signal.send(sender=None, webhook_data=webhook_data)
         return HttpResponse(status = 202)
     except:

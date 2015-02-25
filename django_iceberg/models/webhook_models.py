@@ -13,10 +13,18 @@ WEBHOOK_DEFAULT_RETRY_DELAY = getattr(settings, 'WEBHOOK_DEFAULT_RETRY_DELAY', 1
 WEBHOOK_DEFAULT_MAX_ATTEMPTS = getattr(settings, 'WEBHOOK_DEFAULT_MAX_ATTEMPTS', 5)
 WEBHOOK_DEFAULT_MAX_TRIGGER_AGGREGATION = getattr(settings, 'WEBHOOK_DEFAULT_MAX_TRIGGER_AGGREGATION', 10)
 
+ICEBERG_WEBHOOK_MODEL = getattr(settings, "ICEBERG_WEBHOOK_MODEL", "django_iceberg.IcebergWebhook")
+
 import logging
 logger = logging.getLogger(__name__)
 
-class IcebergWebhook(IcebergBaseModel):
+class AbstractIcebergWebhook(IcebergBaseModel):
+    """ Abstract model that can store an Iceberg Webhook """
+
+    class Meta:
+        abstract = True
+
+
     EVENT_CHOICES = (
         ('user_payment_card_created', _('A user has added a new payment card')),
         ('merchant_paused', _('A merchant is now paused')),
@@ -73,12 +81,17 @@ class IcebergWebhook(IcebergBaseModel):
         max_length=10, blank=True, null=True
     )
 
+
+    def __unicode__(self):
+        return u"[%s]%s" % (self.id, self.event)
+
+
     def save(self, api_handler=None, iceberg_sync=True, *args, **kwargs):
         """
         if an api_handler is given, update or create the webhook on iceberg
         """
         self.full_clean()
-        super(IcebergWebhook, self).save(*args, **kwargs)
+        super(AbstractIcebergWebhook, self).save(*args, **kwargs)
         
         if not iceberg_sync:
             return
@@ -118,7 +131,7 @@ class IcebergWebhook(IcebergBaseModel):
 
     def iceberg_sync(self, api_handler):
         if self.iceberg_id is None:
-            raise Exception("IcebergWebhook instance has no iceberg_id, can't sync")
+            raise Exception("%s instance has no iceberg_id, can't sync" % self.__class__.__name__)
 
         iceberg_webhook = api_handler.Webhook.find(self.iceberg_id)
         self.application_id = iceberg_webhook.application.id if iceberg_webhook.application else None
@@ -135,4 +148,19 @@ class IcebergWebhook(IcebergBaseModel):
         self.active_merchant_only = iceberg_webhook.active_merchant_only
         self.created_at = iceberg_webhook.created_at
         self.updated_at = iceberg_webhook.updated_at
-        super(IcebergWebhook, self).save() ## just calling the original save()
+        super(AbstractIcebergWebhook, self).save() ## just calling the original save()
+
+
+
+
+
+if ICEBERG_WEBHOOK_MODEL == "django_iceberg.IcebergWebhook":
+
+    ### if defined as ICEBERG_WEBHOOK_MODEL, defining non abstract model
+
+    class IcebergWebhook(AbstractIcebergWebhook):
+        pass
+
+
+
+

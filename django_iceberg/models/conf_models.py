@@ -4,6 +4,7 @@ from copy import copy
 
 from django.db import models
 from django.conf import settings
+from django.core.exceptions import ValidationError
 from django.conf.global_settings import LANGUAGES
 from django.utils.translation import ugettext_lazy as _
 
@@ -44,7 +45,8 @@ class IcebergConfigurationBase(models.Model):
         (LOCAL_SANDBOX_API_URL, _("Local Sandbox")),
     )
 
-    iceberg_api_url = models.URLField(max_length=512, default=SANDBOX_API_URL)
+    ## no URLField because we want no trailing slash
+    iceberg_api_url = models.CharField(max_length=512, default=SANDBOX_API_URL, choices=API_URL_CHOICES)
     
     iceberg_api_port = models.PositiveSmallIntegerField(default=443)
 
@@ -54,13 +56,17 @@ class IcebergConfigurationBase(models.Model):
     )
 
     DEFAULT_ICEBERG_MODULES_URL = "http://connect.iceberg-marketplace.com/modules/"
-    iceberg_modules_url = models.URLField(max_length=512, default=DEFAULT_ICEBERG_MODULES_URL)
+    iceberg_modules_url = models.CharField(max_length=512, default=DEFAULT_ICEBERG_MODULES_URL)
 
     
     # keys
     iceberg_api_private_key = models.CharField(max_length=512, blank=True, null=True)
     iceberg_application_namespace = models.CharField(max_length=512, blank=True, null=True)
     iceberg_application_secret_key = models.CharField(max_length=512, blank=True, null=True)
+    iceberg_application_staff_email = models.EmailField(blank=True, null=True)
+    iceberg_application_staff_first_name = models.CharField(max_length=128, blank=True, null=True)
+    iceberg_application_staff_last_name = models.CharField(max_length=128, blank=True, null=True)
+
     
 
     image_server_url = models.URLField(max_length=512, blank=True, null=True)
@@ -128,3 +134,40 @@ class IcebergConfigurationBase(models.Model):
             conf.ICEBERG_APPLICATION_SECRET_KEY = self.iceberg_application_secret_key
 
         return conf
+
+
+    def get_api_handler(self, sso_as_application_staff=False):
+        from icebergsdk.api import IcebergAPI
+        api_handler = IcebergAPI(conf=self.get_iceberg_configuration())
+        if sso_as_application_staff:
+            api_handler.sso_user(
+                email=self.iceberg_application_staff_email,
+                first_name=self.iceberg_application_staff_first_name,
+                last_name=self.iceberg_application_staff_last_name,
+            )
+        return api_handler
+
+
+    def check_valid_credentials(self):
+        try:
+            api_handler = self.get_api_handler(sso_as_application_staff=True)
+            me_user = api_handler.User.me()
+        except Exception, e:
+            raise ValidationError(e.message)
+
+        if me_user.username == "anonymous":
+            raise ValidationError("Should not be anonymous")
+
+        if me_user.email != self.iceberg_application_staff_email:
+            raise ValidationError("Not logged as %s" % self.iceberg_application_staff_email)
+
+        if not me_user.is_application_staff:
+            raise ValidationError("User %s is not staff on app %s" %
+                (self.iceberg_application_staff_email, self.iceberg_application_namespace)
+            )
+
+        return True
+
+
+    def clean(self):
+        self.check_valid_credentials()
