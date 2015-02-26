@@ -34,7 +34,7 @@ class IcebergConfigurationBase(models.Model):
     iceberg_default_lang = models.CharField(max_length=2, default="en", choices = LANGUAGES)
 
     PRODUCTION_API_URL = "https://api.iceberg.technology"
-    SANDBOX_API_URL = "https://api.sandbox.iceberg.technology"
+    SANDBOX_API_URL = "http://api.sandbox.iceberg.technology"
     LOCAL_PRODUCTION_API_URL = "http://api.local.iceberg.technology"
     LOCAL_SANDBOX_API_URL = "http://api.sandbox.local.iceberg.technology"
 
