@@ -9,6 +9,7 @@ from django.conf.global_settings import LANGUAGES
 from django.utils.translation import ugettext_lazy as _
 
 DEFAULT_ICEBERG_ENV = getattr(settings, 'ICEBERG_DEFAULT_ENVIRO', "prod")
+IMAGE_SERVER_URL = getattr(settings, 'ICEBERG_IMAGE_SERVER_URL', None)
 
 
 class IcebergConfigurationBase(models.Model):
@@ -133,6 +134,8 @@ class IcebergConfigurationBase(models.Model):
         if self.iceberg_application_secret_key:
             conf.ICEBERG_APPLICATION_SECRET_KEY = self.iceberg_application_secret_key
 
+        conf.IMAGE_SERVER_URL = IMAGE_SERVER_URL ## TODO add it as model field
+ 
         return conf
 
 
