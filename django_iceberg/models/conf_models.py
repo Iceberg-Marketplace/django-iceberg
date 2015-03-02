@@ -9,6 +9,7 @@ from django.conf.global_settings import LANGUAGES
 from django.utils.translation import ugettext_lazy as _
 
 DEFAULT_ICEBERG_ENV = getattr(settings, 'ICEBERG_DEFAULT_ENVIRO', "prod")
+IMAGE_SERVER_URL = getattr(settings, 'ICEBERG_IMAGE_SERVER_URL', None)
 
 
 class IcebergConfigurationBase(models.Model):
@@ -34,7 +35,7 @@ class IcebergConfigurationBase(models.Model):
     iceberg_default_lang = models.CharField(max_length=2, default="en", choices = LANGUAGES)
 
     PRODUCTION_API_URL = "https://api.iceberg.technology"
-    SANDBOX_API_URL = "https://api.sandbox.iceberg.technology"
+    SANDBOX_API_URL = "http://api.sandbox.iceberg.technology"
     LOCAL_PRODUCTION_API_URL = "http://api.local.iceberg.technology"
     LOCAL_SANDBOX_API_URL = "http://api.sandbox.local.iceberg.technology"
 
@@ -133,6 +134,8 @@ class IcebergConfigurationBase(models.Model):
         if self.iceberg_application_secret_key:
             conf.ICEBERG_APPLICATION_SECRET_KEY = self.iceberg_application_secret_key
 
+        conf.IMAGE_SERVER_URL = IMAGE_SERVER_URL ## TODO add it as model field
+ 
         return conf
 
 
