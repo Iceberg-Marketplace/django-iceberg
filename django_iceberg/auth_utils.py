@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 import json
+import logging
 
 from icebergsdk.api import IcebergAPI
 
@@ -13,6 +14,8 @@ from django_iceberg.conf import ConfigurationDebug, ConfigurationDebugSandbox, C
 """
 To Do: Add birth_date
 """
+
+logger = logging.getLogger(__name__)
 
 
 def get_iceberg_model(request):
@@ -72,20 +75,35 @@ def get_api_handler_for_user(request, force_reload = False, data = None, lang = 
         ## default conf
         conf = get_conf_class(request)
 
-    # Check if we have a saved one
-    if not force_reload and ('iceberg_auth_response' in request.session):
-        if ('username' in request.session['iceberg_auth_response']) and ('access_token' in request.session['iceberg_auth_response']):
-            api_handler = IcebergAPI(conf = conf, lang = lang)
-            api_handler._auth_response = request.session['iceberg_auth_response']
-            api_handler.username = request.session['iceberg_auth_response']['username']
-            api_handler.access_token = request.session['iceberg_auth_response']['access_token']
+    # # Check if we have a saved one
+    # if not force_reload and ('iceberg_auth_response' in request.session):
+    #     logger.debug('Found Iceberg Auth data in session')
 
-            return api_handler
+    #     if ('username' in request.session['iceberg_auth_response']) and ('access_token' in request.session['iceberg_auth_response']):
+    #         api_handler = IcebergAPI(conf = conf, lang = lang)
+    #         api_handler._auth_response = request.session['iceberg_auth_response']
+    #         api_handler.username = request.session['iceberg_auth_response']['username']
+    #         api_handler.access_token = request.session['iceberg_auth_response']['access_token']
+
+    #         return api_handler
+
+    user_iceberg_model = get_iceberg_model(request)
+    if user_iceberg_model.access_token:
+        logger.debug('Found Iceberg Auth data in model')
+
+        api_handler = IcebergAPI(conf = conf, lang = lang)
+        api_handler._auth_response = json.loads(user_iceberg_model.sso_data)
+        api_handler.username = user_iceberg_model.iceberg_username
+        api_handler.access_token = user_iceberg_model.access_token
+        return api_handler
+
 
     if getattr(conf, "ICEBERG_API_PRIVATE_KEY", False):  # ICEBERG_API_PRIVATE_KEY is use for Iceberg internal calls
         api_handler = IcebergAPI(conf = conf, lang = lang).auth_user(user.username, user.email, first_name = user.first_name, last_name = user.last_name, is_staff = user.is_staff, is_superuser = user.is_superuser)
     else:
         # Need to call the Iceberg API
+        logger.debug('Will call Iceberg Auth SSO')
+
         if not data:
             data = {}
 
