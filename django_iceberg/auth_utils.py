@@ -65,6 +65,28 @@ def get_conf_class(request, enviro = None):
     return conf
 
 
+def save_api_handler_data(request, api_handler):
+    user_iceberg_model = get_iceberg_model(request)
+
+    user_iceberg_model.application_namespace = api_handler.conf.ICEBERG_APPLICATION_NAMESPACE
+    user_iceberg_model.environment = getattr(api_handler.conf, 'ICEBERG_ENV', 'prod')
+    user_iceberg_model.sso_data = json.dumps(api_handler._auth_response)
+    user_iceberg_model.iceberg_username =  api_handler.username
+    user_iceberg_model.access_token = api_handler.access_token
+
+    if hasattr(api_handler.me(), 'language') and api_handler.me().language:
+        user_iceberg_model.language = api_handler.me().language
+
+    if hasattr(api_handler.me(), 'shopping_preference'):
+        if api_handler.me().shopping_preference.country:
+            user_iceberg_model.shipping_country = api_handler.me().shopping_preference.country
+
+        if api_handler.me().shopping_preference.currency:
+            user_iceberg_model.currency = api_handler.me().shopping_preference.currency
+
+    user_iceberg_model.save()
+    return user_iceberg_model
+
 ######
 ### IcebergAPI initialisation
 ######
@@ -98,7 +120,7 @@ def get_api_handler_for_user(request, force_reload = False, data = None, lang = 
         return api_handler
 
 
-    if getattr(conf, "ICEBERG_API_PRIVATE_KEY", False):  # ICEBERG_API_PRIVATE_KEY is use for Iceberg internal calls
+    if getattr(conf, "ICEBERG_API_PRIVATE_KEY", False):  # ICEBERG_API_PRIVATE_KEY is used for Iceberg internal calls
         api_handler = IcebergAPI(conf = conf, lang = lang).auth_user(user.username, user.email, first_name = user.first_name, last_name = user.last_name, is_staff = user.is_staff, is_superuser = user.is_superuser)
     else:
         # Need to call the Iceberg API
@@ -115,27 +137,9 @@ def get_api_handler_for_user(request, force_reload = False, data = None, lang = 
 
         api_handler = IcebergAPI(conf = conf, lang = lang).sso_user(**data)
 
-        user_iceberg_model = get_iceberg_model(request)
-
-        user_iceberg_model.application_namespace = api_handler.conf.ICEBERG_APPLICATION_NAMESPACE
-        user_iceberg_model.environment = getattr(api_handler.conf, 'ICEBERG_ENV', 'prod')
-        user_iceberg_model.sso_data = json.dumps(api_handler._auth_response)
-        user_iceberg_model.iceberg_username =  api_handler.username
-        user_iceberg_model.access_token = api_handler.access_token
-
-        if hasattr(api_handler.me(), 'language') and api_handler.me().language:
-            user_iceberg_model.language = api_handler.me().language
-
-        if api_handler.me().shopping_preference.country:
-            user_iceberg_model.shipping_country = api_handler.me().shopping_preference.country
-
-        if api_handler.me().shopping_preference.currency:
-            user_iceberg_model.currency = api_handler.me().shopping_preference.currency
-
-        user_iceberg_model.save()
-
-    # Keep it in session
-    request.session['iceberg_auth_response'] = api_handler._auth_response    
+    save_api_handler_data(request, api_handler)
+    # # Keep it in session
+    # request.session['iceberg_auth_response'] = api_handler._auth_response
 
     return api_handler
 
