@@ -37,6 +37,9 @@ class UserIcebergModel(IcebergBaseModel):
 
     def switch_env(self, new_env):
         self.environment = new_env
+        ## clearing sso data that wont be valid anymore on new_env
+        self.sso_data = None
+        self.access_token = None
         self.save()
 
     def get_conf(self):
