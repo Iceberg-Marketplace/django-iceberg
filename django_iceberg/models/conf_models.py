@@ -129,7 +129,10 @@ class IcebergConfigurationBase(models.Model):
         if self.iceberg_application_secret_key:
             conf.ICEBERG_APPLICATION_SECRET_KEY = self.iceberg_application_secret_key
 
-        conf.IMAGE_SERVER_URL = IMAGE_SERVER_URL  # TODO add it as model field
+        if self.image_server_url:
+            conf.IMAGE_SERVER_URL = self.image_server_url
+        else:
+            conf.IMAGE_SERVER_URL = IMAGE_SERVER_URL  # TODO add it as model field
 
         return conf
 

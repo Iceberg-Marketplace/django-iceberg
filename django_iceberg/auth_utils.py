@@ -109,15 +109,16 @@ def get_api_handler_for_user(request, force_reload = False, data = None, lang = 
 
     #         return api_handler
 
-    user_iceberg_model = get_iceberg_model(request)
-    if user_iceberg_model.access_token:
-        logger.debug('Found Iceberg Auth data in model')
+    if not force_reload:
+        user_iceberg_model = get_iceberg_model(request)
+        if user_iceberg_model.access_token:
+            logger.debug('Found Iceberg Auth data in model')
 
-        api_handler = IcebergAPI(conf = conf, lang = lang)
-        api_handler._auth_response = json.loads(user_iceberg_model.sso_data)
-        api_handler.username = user_iceberg_model.iceberg_username
-        api_handler.access_token = user_iceberg_model.access_token
-        return api_handler
+            api_handler = IcebergAPI(conf = conf, lang = lang)
+            api_handler._auth_response = json.loads(user_iceberg_model.sso_data)
+            api_handler.username = user_iceberg_model.iceberg_username
+            api_handler.access_token = user_iceberg_model.access_token
+            return api_handler
 
 
     if getattr(conf, "ICEBERG_API_PRIVATE_KEY", False):  # ICEBERG_API_PRIVATE_KEY is used for Iceberg internal calls
