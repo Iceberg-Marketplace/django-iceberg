@@ -5,8 +5,6 @@ from django.conf import settings
 from django.utils.translation import ugettext_lazy as _
 from .base_models import IcebergBaseModel
 
-from icebergsdk.api import IcebergAPI
-
 WEBHOOK_MAX_TRIGGER_AGGREGATION = getattr(settings, 'WEBHOOK_MAX_TRIGGER_AGGREGATION', 200)
 WEBHOOK_DEFAULT_AGGREGATION_DELAY = getattr(settings, 'WEBHOOK_DEFAULT_AGGREGATION_DELAY', 5*60)
 WEBHOOK_DEFAULT_RETRY_DELAY = getattr(settings, 'WEBHOOK_DEFAULT_RETRY_DELAY', 15*60)
@@ -26,27 +24,48 @@ class AbstractIcebergWebhook(IcebergBaseModel):
 
 
     EVENT_CHOICES = (
-        ('user_payment_card_created', _('A user has added a new payment card')),
-        ('merchant_paused', _('A merchant is now paused')),
-        ('merchant_order_received', _('A merchant order is now received')),
-        ('merchant_order_sent', _('A merchant order is now sent')),
-        ('payment_status_changed', _('A payment object has its status updated')),
-        ('merchant_stopped', _('A merchant is now stopped')),
-        ('merchant_order_confirmed', _('A merchant order is now confirmed')),
-        ('merchant_order_authorized', _('A new merchant order is now authorized')),
-        ('new_merchant_available', _('A new merchant is available for your application')),
-        ('merchant_order_cancelled', _('An authorized merchant order is now cancelled')),
-        ('order_item_cancelled', _('An authorized order item is now cancelled')),
-        ('user_profile_updated', _('A user profile has been updated')),
-        ('merchant_activated', _('A merchant is now activated')),
-        ('product_updated', _('An active product has been updated')),
-        ('product_offer_updated', _('An active product offer has been updated')),
-        ('user_payment_card_status_changed', _('A user payment card has its status changed')),
-        ('cart_status_changed', _('A cart status has changed'))
+        ('cart_status_changed', ('A cart status has changed')),
+        ('merchant_order_authorized', ('A new merchant order is now authorized')),
+        ('merchant_order_confirmed', ('A merchant order is now confirmed')),
+        ('merchant_order_cancelled', ('An authorized merchant order is now cancelled')),
+        ('merchant_order_sent', ('A merchant order is now sent')),
+        ('merchant_order_received', ('A merchant order is now received')),
+        ('order_item_cancelled', ('An authorized order item is now cancelled')),
+        ('new_merchant_available', ('A new merchant is available for your application')),
+        ('merchant_activated', ('A merchant is now activated')),
+        ('merchant_paused', ('A merchant is now paused')),
+        ('merchant_stopped', ('A merchant is now stopped')),
+        ('bank_account_saved', ("A merchant saved bank information.")),
+        ('user_payment_card_created', ('A user has added a new payment card')),
+        ('user_payment_card_status_changed', ('A user payment card has its status changed')),
+        ('payment_status_changed', ('A payment object has its status updated')),
+        ('product_updated', ('An active product has been updated')),
+        ('product_offer_updated', ('An active product offer has been updated')),
+        ('user_profile_updated', ('A user profile has been updated')),
+        ('order_authorized', ('A new order is now authorized')),
+        ('order_confirmed', ('An order is now confirmed')),
+        ('order_cancelled', ('An authorized order is now cancelled')),
+        ('order_sent', ('An order is now sent')),
+        ('order_received', ('An order is now received')),
+        ('return_opened', ('A new return request has been opened')),
+        ('return_reopened', ('A closed or cancelled return request has been reopened and set to accepted status')),
+        ('return_accepted', ('An open return request is now accepted')),
+        ('return_cancelled', ('An open or accepted return request has been cancelled')),
+        ('return_package_received', ('An accepted return request\'s package was received.')),
+        ('return_closed_by_seller', ('A return request has been closed by seller')),
+        ('return_closed_by_buyer', ('A return request has been closed by buyer')),
+        ('return_request_closed', ('A return request has been closed either by buyer or by seller')),
+        ('package_tracking_status_changed', ('A tracked package has its status updated')),
+        ('package_tracking_overall_status_changed', ('A tracked package has its overall status updated')),
+        ('package_tracking_number_added', ('A tracked package has now a tracking number')),
+        ('new_package_tracking', ('A new package is being tracked')),
+        ('new_message', ('A new message has been sent over the marketplace')),
+        ('message_read', ('A message has been read on the marketplace')),
+        ('message_closed', ('A thread of messages is closed on the marketplace')),
      )
     event = models.CharField(max_length=100, choices=EVENT_CHOICES, db_index=True)
     url = models.URLField('Target URL', max_length=255)
-    
+
     active_merchant_only = models.BooleanField(
         _('Limit this webhook to active merchant(s) ?'), default=True
     )
@@ -60,7 +79,7 @@ class AbstractIcebergWebhook(IcebergBaseModel):
     label = models.CharField(max_length=128, null=True, blank=True, db_index=True)
     created_at = models.DateTimeField(blank=True, null=True)
     max_attempts = models.PositiveSmallIntegerField(
-        _('Maximum Attempts'), 
+        _('Maximum Attempts'),
         default = WEBHOOK_DEFAULT_MAX_ATTEMPTS
     )
     new_attempt_delay = models.PositiveIntegerField(
@@ -104,7 +123,7 @@ class AbstractIcebergWebhook(IcebergBaseModel):
                              Call self.create_or_update_on_iceberg to create it")
             else:
                 logger.warn("No api_handler given as save() params, not updated on Iceberg.\
-                             Call self.create_or_update_on_iceberg to update it")            
+                             Call self.create_or_update_on_iceberg to update it")
 
 
 
