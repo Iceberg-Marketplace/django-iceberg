@@ -22,7 +22,7 @@ setup(
     version=VERSION,
     description='Django Iceberg',
     author='Iceberg',
-    author_email='florian@iceberg-marketplace.com',
+    author_email='florian@izberg-marketplace.com',
     url='https://github.com/Modizy/django-iceberg',
     packages = ["django_iceberg", "django_iceberg.templatetags", "django_iceberg.models"],
     install_requires = install_requires,
