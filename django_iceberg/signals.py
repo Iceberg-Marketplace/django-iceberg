@@ -4,6 +4,9 @@ from django.dispatch import Signal
 
 """ Signals triggered by webhook endpoint with raw webhook_data """
 
+webhook_received = Signal(providing_args=["webhook_data"])  # generic signal
+
+
 product_updated_webhook = Signal(providing_args=["webhook_data"])
 product_offer_updated_webhook = Signal(providing_args=["webhook_data"])
 
