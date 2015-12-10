@@ -9,9 +9,11 @@ from django.conf.global_settings import LANGUAGES
 from django.utils.translation import ugettext_lazy as _
 
 DEFAULT_ICEBERG_ENV = getattr(settings, 'ICEBERG_DEFAULT_ENVIRO', "prod")
+IMAGE_SERVER_URL = getattr(settings, 'ICEBERG_IMAGE_SERVER_URL', None)
 
 
 class IcebergConfigurationBase(models.Model):
+
     """ Abstract model that can store an Iceberg Configuration """
 
     class Meta:
@@ -31,7 +33,7 @@ class IcebergConfigurationBase(models.Model):
 
     iceberg_api_version = models.CharField(max_length=32, default="v1")
     iceberg_auth_header = models.CharField(max_length=128, default="IcebergAccessToken")
-    iceberg_default_lang = models.CharField(max_length=2, default="en", choices = LANGUAGES)
+    iceberg_default_lang = models.CharField(max_length=2, default="en", choices=LANGUAGES)
 
     PRODUCTION_API_URL = "https://api.iceberg.technology"
     SANDBOX_API_URL = "https://api.sandbox.iceberg.technology"
@@ -45,9 +47,9 @@ class IcebergConfigurationBase(models.Model):
         (LOCAL_SANDBOX_API_URL, _("Local Sandbox")),
     )
 
-    ## no URLField because we want no trailing slash
+    # no URLField because we want no trailing slash
     iceberg_api_url = models.CharField(max_length=512, default=SANDBOX_API_URL, choices=API_URL_CHOICES)
-    
+
     iceberg_api_port = models.PositiveSmallIntegerField(default=443)
 
     iceberg_cors_url = models.CharField(
@@ -58,7 +60,6 @@ class IcebergConfigurationBase(models.Model):
     DEFAULT_ICEBERG_MODULES_URL = "http://connect.iceberg-marketplace.com/modules/"
     iceberg_modules_url = models.CharField(max_length=512, default=DEFAULT_ICEBERG_MODULES_URL)
 
-    
     # keys
     iceberg_api_private_key = models.CharField(max_length=512, blank=True, null=True)
     iceberg_application_namespace = models.CharField(max_length=512, blank=True, null=True)
@@ -67,28 +68,23 @@ class IcebergConfigurationBase(models.Model):
     iceberg_application_staff_first_name = models.CharField(max_length=128, blank=True, null=True)
     iceberg_application_staff_last_name = models.CharField(max_length=128, blank=True, null=True)
 
-    
-
     image_server_url = models.URLField(max_length=512, blank=True, null=True)
 
-    
     @property
     def iceberg_api_url_full(self):
         if not self.iceberg_api_url:
             return ""
         return "%s:%s" % (self.iceberg_api_url, self.iceberg_api_port)
 
-
     @property
     def iceberg_cors(self):
         if not self.iceberg_cors_url:
             return ""
         if self.iceberg_cors_url.startswith("http"):
-            ## absolute url
+            # absolute url
             return self.iceberg_cors_url
         else:
             return "%s%s" % (self.iceberg_api_url_full, self.iceberg_cors_url)
-
 
     def get_iceberg_configuration(self, base_conf=None):
         """
@@ -100,12 +96,12 @@ class IcebergConfigurationBase(models.Model):
         if base_conf is None:
             conf = ConfigurationBase()
         elif type(base_conf) == type:
-            ## instanciate class
+            # instanciate class
             conf = base_conf()
         else:
-            ## copying base_conf to be sure it's not modified and used somewhere else
-            conf = copy(base_conf) 
-        
+            # copying base_conf to be sure it's not modified and used somewhere else
+            conf = copy(base_conf)
+
         conf.ICEBERG_ENV = self.iceberg_environment
 
         if self.iceberg_api_version:
@@ -126,15 +122,19 @@ class IcebergConfigurationBase(models.Model):
 
         if self.iceberg_api_private_key:
             conf.ICEBERG_API_PRIVATE_KEY = self.iceberg_api_private_key
-            
+
         if self.iceberg_application_namespace:
             conf.ICEBERG_APPLICATION_NAMESPACE = self.iceberg_application_namespace
 
         if self.iceberg_application_secret_key:
             conf.ICEBERG_APPLICATION_SECRET_KEY = self.iceberg_application_secret_key
 
-        return conf
+        if self.image_server_url:
+            conf.IMAGE_SERVER_URL = self.image_server_url
+        else:
+            conf.IMAGE_SERVER_URL = IMAGE_SERVER_URL  # TODO add it as model field
 
+        return conf
 
     def get_api_handler(self, sso_as_application_staff=False):
         from icebergsdk.api import IcebergAPI
@@ -146,7 +146,6 @@ class IcebergConfigurationBase(models.Model):
                 last_name=self.iceberg_application_staff_last_name,
             )
         return api_handler
-
 
     def check_valid_credentials(self):
         try:
@@ -163,11 +162,10 @@ class IcebergConfigurationBase(models.Model):
 
         if not me_user.is_application_staff:
             raise ValidationError("User %s is not staff on app %s" %
-                (self.iceberg_application_staff_email, self.iceberg_application_namespace)
-            )
+                                  (self.iceberg_application_staff_email, self.iceberg_application_namespace)
+                                  )
 
         return True
-
 
     def clean(self):
         self.check_valid_credentials()
