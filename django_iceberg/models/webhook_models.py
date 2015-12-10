@@ -144,9 +144,16 @@ class AbstractIcebergWebhook(IcebergBaseModel):
         self.iceberg_id = iceberg_webhook.id
         
         ## calling iceberg_sync() to update the fields of 'self' to the actual values (some fields might be uneditable)
-        self.iceberg_sync(api_handler) 
+        self.iceberg_sync(api_handler)
 
+    def delete(self, api_handler=None, *args, **kwargs):
+        """
+        if an api_handler is given, try to delete the webhook on iceberg
+        """
+        if api_handler:
+            self._iceberg_delete(api_handler, fail_silently=True)
 
+        super(AbstractIcebergWebhook, self).delete(*args, **kwargs)
 
     def iceberg_sync(self, api_handler):
         if self.iceberg_id is None:
@@ -170,7 +177,19 @@ class AbstractIcebergWebhook(IcebergBaseModel):
         super(AbstractIcebergWebhook, self).save() ## just calling the original save()
 
 
+    def _iceberg_delete(self, api_handler, fail_silently=False):
+        try:
+            if self.iceberg_id is None:
+                raise Exception("%s instance has no iceberg_id, can't sync" %
+                                self.__class__.__name__)
 
+            iceberg_webhook = api_handler.Webhook.find(self.iceberg_id)
+            iceberg_webhook.delete()
+        except Exception as err:
+            if not fail_silently:
+                raise
+            logger.warn("Couldnt delete webhook %s on iceberg: %s",
+                        self.iceberg_id, err)
 
 
 if ICEBERG_WEBHOOK_MODEL == "django_iceberg.IcebergWebhook":
