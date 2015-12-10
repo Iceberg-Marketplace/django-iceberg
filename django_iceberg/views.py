@@ -79,18 +79,23 @@ class UpdateShoppingPreference(FormView):
 def webhook_endpoint(request, **kwargs):
     try:
         from django_iceberg import signals
+        from django_iceberg.signals import webhook_received
         try:
             webhook_data = json.loads(request.body)
             event = webhook_data["event"]
         except (KeyError, ValueError) as err:
             logger.exception("in webhook_endpoint: bad request: ")
-            return HttpResponse(status = 400, content=str(err))
+            return HttpResponse(status=400, content=str(err))
+
+        ## generic webhook signal
+        webhook_received.send(sender=None, webhook_data=webhook_data)
+
+        ## looking for specific webhook signal
         signal_name = "%s_webhook" % event
         signal = getattr(signals, signal_name, None)
-        if signal is None:
-            logger.error("Received unknown webhook event %s" % event)
-        else:
-            logger.info("Received webhook event %s, forwarding it as signal %s" % (event, signal_name))
+        if signal:
+            logger.info("Received webhook event %s, forwarding it as signal %s",
+                        event, signal_name)
             signal.send(sender=None, webhook_data=webhook_data)
         return HttpResponse(status = 202)
     except:
