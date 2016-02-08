@@ -28,6 +28,7 @@ def iceberg_settings(request):
 
     if request.user.is_authenticated():
         res['access_token'] = init_iceberg(request).access_token
+        res['username'] = init_iceberg(request).username
     else:
         res['ICEBERG_ENV'] = None
         res['access_token'] = "anonymous"
