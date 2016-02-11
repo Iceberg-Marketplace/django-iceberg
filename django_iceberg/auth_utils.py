@@ -6,10 +6,13 @@ import logging
 from icebergsdk.api import IcebergAPI
 
 from django.conf import settings
-
+from django.contrib.auth import get_user_model
 from django_iceberg.models import UserIcebergModel
-from django_iceberg.conf import ConfigurationDebug, ConfigurationDebugSandbox, ConfigurationSandbox, ConfigurationSandboxStage, ConfigurationStage, ConfigurationProd
-
+from django_iceberg.conf import (
+    ConfigurationDebug, ConfigurationDebugSandbox,
+    ConfigurationSandbox, ConfigurationSandboxStage,
+    ConfigurationStage, ConfigurationProd
+)
 
 """
 To Do: Add birth_date
@@ -18,28 +21,31 @@ To Do: Add birth_date
 logger = logging.getLogger(__name__)
 
 
-def get_iceberg_model(request):
-    if not hasattr(request, '_iceberg_model'):
-        user_iceberg_model, created = UserIcebergModel.objects.get_or_create(user=request.user)
-        setattr(request, '_iceberg_model', user_iceberg_model)
+def get_iceberg_model(request_or_user):
+    if not hasattr(request_or_user, '_iceberg_model'):
+        if isinstance(request_or_user, get_user_model()):
+            user_iceberg_model, created = UserIcebergModel.objects.get_or_create(user=request_or_user)
+        else:
+            user_iceberg_model, created = UserIcebergModel.objects.get_or_create(user=request_or_user.user)
+        setattr(request_or_user, '_iceberg_model', user_iceberg_model)
+    return request_or_user._iceberg_model
 
-    return request._iceberg_model
 
-
-def get_environment(request):
-    if request.user.is_authenticated():
-        iceberg_model = get_iceberg_model(request)
+def get_environment(request_or_user):
+    if ((isinstance(request_or_user, get_user_model()) and
+            request_or_user.is_authenticated()) or
+            request_or_user.user.is_authenticated()):
+        iceberg_model = get_iceberg_model(request_or_user)
         return iceberg_model.environment
-
     return None
 
 
-def get_conf_class(request, enviro=None):
+def get_conf_class(request_or_user, enviro=None):
     """
     Return the Configuration class for the given enviro
     """
     if not enviro:
-        enviro = get_environment(request)
+        enviro = get_environment(request_or_user)
 
     if getattr(settings, 'ICEBERG_USE_LOCAL', False):
         if not enviro:
@@ -65,8 +71,8 @@ def get_conf_class(request, enviro=None):
     return conf
 
 
-def save_api_handler_data(request, api_handler):
-    user_iceberg_model = get_iceberg_model(request)
+def save_api_handler_data(request_or_user, api_handler):
+    user_iceberg_model = get_iceberg_model(request_or_user)
 
     user_iceberg_model.application_namespace = api_handler.conf.ICEBERG_APPLICATION_NAMESPACE
     user_iceberg_model.environment = getattr(api_handler.conf, 'ICEBERG_ENV', 'prod')
@@ -92,12 +98,15 @@ def save_api_handler_data(request, api_handler):
 ######
 
 
-def get_api_handler_for_user(request, force_reload=False, data=None, lang=None, conf=None):
-    user = request.user
-
+def get_api_handler_for_user(request_or_user, force_reload=False,
+                             data=None, lang=None, conf=None):
+    if isinstance(request_or_user, get_user_model()):
+        user = request_or_user
+    else:
+        user = request_or_user.user
     if conf is None:
         # default conf
-        conf = get_conf_class(request)
+        conf = get_conf_class(request_or_user)
 
     # Check if we have a saved one
     # if not force_reload and ('iceberg_auth_response' in request.session):
@@ -112,7 +121,7 @@ def get_api_handler_for_user(request, force_reload=False, data=None, lang=None, 
     #         return api_handler
 
     if not force_reload:
-        user_iceberg_model = get_iceberg_model(request)
+        user_iceberg_model = get_iceberg_model(request_or_user)
         if user_iceberg_model.access_token:
             logger.debug('Found Iceberg Auth data in model')
 
@@ -122,8 +131,13 @@ def get_api_handler_for_user(request, force_reload=False, data=None, lang=None, 
             api_handler.access_token = user_iceberg_model.access_token
             return api_handler
 
-    if getattr(conf, "ICEBERG_API_PRIVATE_KEY", False):  # ICEBERG_API_PRIVATE_KEY is used for Iceberg internal calls
-        api_handler = IcebergAPI(conf=conf, lang=lang).auth_user(user.username, user.email, first_name=user.first_name, last_name=user.last_name, is_staff=user.is_staff, is_superuser=user.is_superuser)
+    # ICEBERG_API_PRIVATE_KEY is used for Iceberg internal calls
+    if getattr(conf, "ICEBERG_API_PRIVATE_KEY", False):
+        api_handler = IcebergAPI(conf=conf, lang=lang).auth_user(
+            user.username, user.email, first_name=user.first_name,
+            last_name=user.last_name, is_staff=user.is_staff,
+            is_superuser=user.is_superuser
+        )
     else:
         # Need to call the Iceberg API
         logger.debug('Will call Iceberg Auth SSO')
@@ -139,17 +153,19 @@ def get_api_handler_for_user(request, force_reload=False, data=None, lang=None, 
 
         api_handler = IcebergAPI(conf=conf, lang=lang).sso_user(**data)
 
-    save_api_handler_data(request, api_handler)
+    save_api_handler_data(request_or_user, api_handler)
     # Keep it in session
     # request.session['iceberg_auth_response'] = api_handler._auth_response
 
     return api_handler
 
 
-def get_api_handler_for_anonymous(request, force_reload=False, data=None, lang=None, conf=None):
+def get_api_handler_for_anonymous(request, force_reload=False,
+                                  data=None, lang=None, conf=None):
     """
     Return the api_handler for an anonymous user
     """
+
     if conf is None:
         # default conf
         conf = get_conf_class(request)
@@ -172,14 +188,24 @@ def get_api_handler_for_anonymous(request, force_reload=False, data=None, lang=N
 ######
 # django_iceberg main fonction
 ######
-def init_iceberg(request, force_reload=False, data=None, lang="en", conf=None):
+def init_iceberg(request_or_user, force_reload=False, data=None, lang="en", conf=None):
     """
     Main function to get an api_handler for the current user
     """
-    if not request.user.is_authenticated():
-        api_handler = get_api_handler_for_anonymous(request, force_reload=force_reload, data=data, lang=lang, conf=conf)
+    if isinstance(request_or_user, get_user_model()) and not request_or_user.is_authenticated():
+        raise Exception("Cannot init iceberg without request if user is anonymous")
+
+    if isinstance(request_or_user, get_user_model()):
+        user = request_or_user
     else:
-        api_handler = get_api_handler_for_user(request, force_reload=force_reload, data=data, lang=lang, conf=conf)
+        user = request_or_user.user
+
+    if not user.is_authenticated():
+        api_handler = get_api_handler_for_anonymous(request_or_user, force_reload=force_reload,
+                                                    data=data, lang=lang, conf=conf)
+    else:
+        api_handler = get_api_handler_for_user(request_or_user, force_reload=force_reload,
+                                               data=data, lang=lang, conf=conf)
 
     return api_handler
 
